@@ -43,16 +43,16 @@ async def _perm(ctx):
     for channel in channel_mentions:
         if(channel.permissions_for(ctx.message.author).administrator):
             for user in user_mentions:
-                if(checkPerm(perm_type)):
-                    overwrite.read_messages = readPerm(True,target_type,user,channel)
-                    overwrite.send_messages = sendPerm(True,target_type,user,channel)
-                    overwrite.add_reactions = reactPerm(True,target_type,user,channel)
+                if(await checkPerm(perm_type)):
+                    overwrite.read_messages = await readPerm(True,target_type,user,channel)
+                    overwrite.send_messages = await sendPerm(True,target_type,user,channel)
+                    overwrite.add_reactions = await reactPerm(True,target_type,user,channel)
                     await bot.edit_channel_permissions(channel,user,overwrite)
                     print(ctx.message.channel,"Permissions successfully enabled for " + user.name + " in " + channel.name + ".")
-                elif(not checkPerm(perm_type)):
-                    overwrite.read_messages = readPerm(False,target_type,user,channel)
-                    overwrite.send_messages = sendPerm(False,target_type,user,channel)
-                    overwrite.add_reactions = reactPerm(False,target_type,user,channel)
+                elif(not await checkPerm(perm_type)):
+                    overwrite.read_messages = await readPerm(False,target_type,user,channel)
+                    overwrite.send_messages = await sendPerm(False,target_type,user,channel)
+                    overwrite.add_reactions = await reactPerm(False,target_type,user,channel)
                     await bot.edit_channel_permissions(channel,user,overwrite)
                     print(ctx.message.channel,"Permissions successfully disabled for " + user.name + " in " + channel.name + ".")
                 else:
