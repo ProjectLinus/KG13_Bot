@@ -37,8 +37,8 @@ async def _perm(ctx):
     message_string = ctx.message.content.split()
     user_mentions = ctx.message.mentions
     channel_mentions = ctx.message.channel_mentions
-    perm_type = message_string[0]
-    target_type = message_string[1]
+    perm_type = message_string[1]
+    target_type = message_string[2]
     overwrite = discord.PermissionOverwrite()
     for channel in channel_mentions:
         if(channel.permissions_for(ctx.message.author).administrator):
@@ -48,15 +48,15 @@ async def _perm(ctx):
                     overwrite.send_messages = await sendPerm(True,target_type,user,channel)
                     overwrite.add_reactions = await reactPerm(True,target_type,user,channel)
                     await bot.edit_channel_permissions(channel,user,overwrite)
-                    print(ctx.message.channel,"Permissions successfully enabled for " + user.name + " in " + channel.name + ".")
-                elif(not await checkPerm(perm_type)):
+                    print("Permissions successfully enabled for " + user.name + " in " + channel.name + ".")
+                elif(not (await checkPerm(perm_type))):
                     overwrite.read_messages = await readPerm(False,target_type,user,channel)
                     overwrite.send_messages = await sendPerm(False,target_type,user,channel)
                     overwrite.add_reactions = await reactPerm(False,target_type,user,channel)
                     await bot.edit_channel_permissions(channel,user,overwrite)
-                    print(ctx.message.channel,"Permissions successfully disabled for " + user.name + " in " + channel.name + ".")
+                    print("Permissions successfully disabled for " + user.name + " in " + channel.name + ".")
                 else:
-                    print(ctx.message.channel,"Incorrect permission type; please call the command as following, picking one of the permission types and target types: \n ```\n!perm (e/d/enable/disable) (r/s/rct/read/send/react/all) (channels to specify) (user mentions)```")
+                    print("Incorrect permission type; please call the command as following, picking one of the permission types and target types: \n ```\n!perm (e/d/enable/disable) (r/s/rct/read/send/react/all) (channels to specify) (user mentions)```")
                     break
         else:
             await bot.send_message(ctx.message.channel,"Error: You do not have the needed permissions to call this command. The command is only usable by administrators of the server.")
@@ -65,9 +65,10 @@ async def _perm(ctx):
 
 @bot.event
 async def checkPerm(perm_type):
-    if perm_type in ("e","enable"):
+    print(perm_type)
+    if perm_type == "e" or perm_type == "enable":
         return True
-    elif perm_type in ("d","disable"):
+    elif perm_type == "d" or perm_type == "disable":
         return False
     else:
         return None
