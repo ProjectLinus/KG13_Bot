@@ -4,7 +4,7 @@ from discord.ext.commands import Bot
 import logging
 from discord import utils
 import asyncio
-
+import Token
 
 logger = logging.getLogger('discord')
 logger.setLevel(logging.DEBUG)
@@ -113,3 +113,7 @@ async def reactPerm(perm_bool, target_type,user,channel):
             return False
         else:
             return channel.permissions_for(user).add_reactions
+
+
+
+bot.run(Token.token)
