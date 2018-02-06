@@ -48,15 +48,15 @@ async def _perm(ctx):
                     overwrite.send_messages = sendPerm(True,target_type,user,channel)
                     overwrite.add_reactions = reactPerm(True,target_type,user,channel)
                     await bot.edit_channel_permissions(channel,user,overwrite)
-                    await bot.send_message(ctx.message.channel,"Permissions successfully enabled for " + user.name + " in " + channel.name + ".")
+                    print(ctx.message.channel,"Permissions successfully enabled for " + user.name + " in " + channel.name + ".")
                 elif(not checkPerm(perm_type)):
                     overwrite.read_messages = readPerm(False,target_type,user,channel)
                     overwrite.send_messages = sendPerm(False,target_type,user,channel)
                     overwrite.add_reactions = reactPerm(False,target_type,user,channel)
                     await bot.edit_channel_permissions(channel,user,overwrite)
-                    await bot.send_message(ctx.message.channel,"Permissions successfully disabled for " + user.name + " in " + channel.name + ".")
+                    print(ctx.message.channel,"Permissions successfully disabled for " + user.name + " in " + channel.name + ".")
                 else:
-                    await bot.send_message(ctx.message.channel,"Incorrect permission type; please call the command as following, picking one of the permission types and target types: \n ```\n!perm (e/d/enable/disable) (r/s/rct/read/send/react/all) (channels to specify) (user mentions)```")
+                    print(ctx.message.channel,"Incorrect permission type; please call the command as following, picking one of the permission types and target types: \n ```\n!perm (e/d/enable/disable) (r/s/rct/read/send/react/all) (channels to specify) (user mentions)```")
                     break
         else:
             await bot.send_message(ctx.message.channel,"Error: You do not have the needed permissions to call this command. The command is only usable by administrators of the server.")
