@@ -30,17 +30,31 @@ async def on_ready():
         print(server.name, server.owner.name)
 
 
-#!perm (e/d/enable/disable) (r/s/rct/read/send/react/all) (channels to specify) (user mentions)
+
+@bot.command(name='check',pass_context=True)
+async def _check(ctx):
+    """
+    !check (user mentions)
+    """
+    user_mentions = ctx.message.mentions
+
+
 
 @bot.command(name='perm',pass_context=True)
 async def _perm(ctx):
+    """
+    !perm (e/d/enable/disable) (r/s/rct/read/send/react/all) (channels to specify) (user mentions) (role mentions)
+    """   
+
     message_string = ctx.message.content.split()
     user_mentions = ctx.message.mentions
     channel_mentions = ctx.message.channel_mentions
+    role_mentions = ctx.message.role_mentions
     perm_type = message_string[1]
     target_type = message_string[2]
     overwrite = discord.PermissionOverwrite()
-    perm_result = await checkPerm(perm_type)
+    perm_result = await permTypeCheck(perm_type)
+    
     for channel in channel_mentions:
         if(channel.permissions_for(ctx.message.author).administrator):
             for user in user_mentions:
@@ -49,13 +63,21 @@ async def _perm(ctx):
                 overwrite.add_reactions = await reactPerm(perm_result,target_type,user,channel)
                 await bot.edit_channel_permissions(channel,user,overwrite)
                 print("Permissions successfully changed for " + user.name + " in " + channel.name + ".")
+            for role in role_mentions:
+                for member in ctx.message.server.members:
+                    if role in member.roles:
+                        overwrite.read_messages = await readPerm(perm_result,target_type,member,channel)
+                        overwrite.send_messages = await sendPerm(perm_result,target_type,member,channel)
+                        overwrite.add_reactions = await reactPerm(perm_result,target_type,member,channel)
+                        await bot.edit_channel_permissions(channel,member,overwrite)
+                        print("Permissions successfully changed for " + member.name + " of " + role.name + " in " + channel.name + ".")
         else:
             await bot.send_message(ctx.message.channel,"Error: You do not have the needed permissions to call this command. The command is only usable by administrators of the server.")
 
 
 
 @bot.event
-async def checkPerm(perm_type):
+async def permTypeCheck(perm_type):
     if perm_type == "e" or perm_type == "enable":
         return True
     elif perm_type == "d" or perm_type == "disable":
