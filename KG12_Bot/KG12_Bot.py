@@ -34,9 +34,22 @@ async def on_ready():
 @bot.command(name='check',pass_context=True)
 async def _check(ctx):
     """
-    !check (user mentions)
+    !check (user mentions) #channel
     """
     user_mentions = ctx.message.mentions
+    channel_mentions = ctx.message.channel_mentions
+
+    for channel in channel_mentions:
+        if(channel.permissions_for(ctx.message.author).administrator):
+            for user in user_mentions:
+                outputUserString = "```Permissions for " + user.name + " in " + channel.name + ": \n"
+                permissionsUser = await checkUserPerms(channel.permissions_for(user))       #read_messages; send_messages; add_reactions;
+                outputUserString += "Reading messages: " + permissionsUser["read_messages"] + "\n"
+                outputUserString += "Sending messages: " + permissionsUser["send_messages"] + "\n"
+                outputUserString += "Reacting to messages: " + permissionsUser["add_reactions"] + "```"
+                await bot.send_message(ctx.message.channel,outputUserString)
+                
+    
 
 
 
@@ -126,6 +139,28 @@ async def reactPerm(perm_bool, target_type,user,channel):
             return False
         else:
             return channel.permissions_for(user).add_reactions
+
+
+@bot.event
+async def checkUserPerms(permissionsUser):
+    
+    permArray = {}
+    if(permissionsUser.read_messages):
+        permArray["read_messages"] = "Enabled"
+    else:
+        permArray["read_messages"] = "Disabled"
+
+    if(permissionsUser.send_messages):
+        permArray["send_messages"] = "Enabled"
+    else:
+        permArray["send_messages"] = "Disabled"
+
+    if(permissionsUser.add_reactions):
+        permArray["add_reactions"] = "Enabled"
+    else:
+        permArray["add_reactions"] = "Disabled"
+
+    return permArray
 
 
 
