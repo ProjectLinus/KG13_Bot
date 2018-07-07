@@ -16,6 +16,30 @@ logger.addHandler(handler)
 bot = Bot(command_prefix='!')
 
 
+
+
+testBotServerId = '410296221383786497'
+t_ty = '300041462593224704'
+
+roomDict = {}
+roomDict[testBotServerId] = ['kitchen','lounge','elevator','control-room']
+roomDict[t_ty] = []
+
+serverIdList = [testBotServerId]
+
+serverLocked = {}
+
+for id in serverIdList:
+    serverLocked[id] = {}
+    for room in roomDict[id]:
+        serverLocked[id][room] = True
+
+
+print(serverLocked)
+
+
+
+
 @bot.event
 async def on_ready():
     print('Logged in as')
@@ -27,7 +51,12 @@ async def on_ready():
         print(member.name, member.id)
     print('------')
     for server in bot.servers:
-        print(server.name, server.owner.name)
+        print(server.name, server.id)
+        for channel in server.channels:
+            if(channel.name in roomDict[server.id]):
+                await channelLock(server,channel)
+                print(channel.name + " was locked.")
+
 
 
 
@@ -86,6 +115,77 @@ async def _perm(ctx):
                         print("Permissions successfully changed for " + member.name + " of " + role.name + " in " + channel.name + ".")
         else:
             await bot.send_message(ctx.message.channel,"Error: You do not have the needed permissions to call this command. The command is only usable by administrators of the server.")
+
+
+
+@bot.command(name='move',pass_context=True)
+async def _move(ctx):
+
+    message_string = ctx.message.content.split()
+    channelName = message_string[1]
+    user = ctx.message.author
+    server = ctx.message.server
+    channel = await getChannel(server,channelName)
+
+    await channelMove(server,channel,user)
+    print(user.name + " moved to " + channel.name + ".")
+    
+    
+
+
+
+
+@bot.command(name='list',pass_context=True)
+async def _list(ctx):
+
+    message = ""
+    server = ctx.message.server
+    unlockedChannels = []
+    for key in serverLocked[server.id].keys():
+        if(not serverLocked[server.id][key]):
+            unlockedChannels.append(key)
+    
+    if(len(unlockedChannels) > 0):
+        message += "You can currently access the following channels by typing !move [channel]:\n"
+            
+        for channel in unlockedChannels:
+            message += channel.name + "\n"
+
+    else:
+        message += "All of the channels are locked at the moment. Please try again later, or contact the Administrator of your server."
+
+    await bot.send_message(ctx.message.channel,message)
+    
+
+
+
+@bot.command(name="lock",pass_context=True)
+async def _lock(ctx):
+
+    channel = ctx.message.channel
+    server = ctx.message.server
+
+    if(channel.permissions_for(ctx.message.author).administrator):
+
+        serverLocked[server.id][channel] = True
+        await channelLock(server,channel)
+        print(channel.name + " was succesfully locked.")
+
+
+
+@bot.command(name="unlock",pass_context=True)
+async def _unlock(ctx):
+
+    channel = ctx.message.channel
+    server = ctx.message.server
+
+    if(channel.permissions_for(ctx.message.author).administrator):
+
+        serverLocked[server.id][channel] = False
+        print(channel.name + " was succesfully unlocked.")
+
+
+
 
 
 
@@ -162,6 +262,44 @@ async def checkUserPerms(permissionsUser):
 
     return permArray
 
+
+
+@bot.event
+async def getChannel(server,channelName):
+    for channel in server.channels:
+        if(channel.name == channelName):
+            return channel
+
+
+@bot.event
+async def channelLock(server,channel):
+    for member in server.members:
+        overwrite = discord.PermissionOverwrite()
+        overwrite.read_messages = await readPerm(False,"all",member,channel)
+        overwrite.send_messages = await sendPerm(False,"all",member,channel)
+        overwrite.add_reactions = await reactPerm(False,"all",member,channel)
+        await bot.edit_channel_permissions(channel,member,overwrite)
+        
+        
+@bot.event
+async def channelMove(server,targetChannel,member):
+
+    for channel in server.channels:
+        if(channel.name in roomDict[server.id]):
+            overwrite = discord.PermissionOverwrite()
+            overwrite.read_messages = await readPerm(False,"all",member,channel)
+            overwrite.send_messages = await sendPerm(False,"all",member,channel)
+            overwrite.add_reactions = await reactPerm(False,"all",member,channel)
+            await bot.edit_channel_permissions(channel,member,overwrite)
+
+
+    overwrite = discord.PermissionOverwrite()
+    overwrite.read_messages = await readPerm(True,"all",member,targetChannel)
+    overwrite.send_messages = await sendPerm(True,"all",member,targetChannel)
+    overwrite.add_reactions = await reactPerm(True,"all",member,targetChannel)
+    await bot.edit_channel_permissions(targetChannel,member,overwrite)
+    
+            
 
 
 bot.run(Token.token)
